@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	requestQueueName   = models.RabbitMQClientId + "_requests"
+	requestQueueName   = "portals-requests"
 	requestsRoutingkey = "requests.portals"
 	answersRoutingkey  = "answers.portals"
 )
