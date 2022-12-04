@@ -55,6 +55,14 @@ func New(broker amqp.MessageBrokerInterface, dofusPortalsToken string, httpTimeo
 	}, nil
 }
 
+func GetBinding() amqp.Binding {
+	return amqp.Binding{
+		Exchange:   amqp.ExchangeRequest,
+		RoutingKey: requestsRoutingkey,
+		Queue:      requestQueueName,
+	}
+}
+
 func (service *PortalsService) Consume() error {
 	log.Info().Msgf("Consuming portal requests...")
 	return service.broker.Consume(requestQueueName, requestsRoutingkey, service.consume)

@@ -25,7 +25,7 @@ type Application struct {
 }
 
 func New(rabbitMqClientId, rabbitMqAddress string, httpTimeout int) (*Application, error) {
-	broker, err := amqp.New(rabbitMqClientId, rabbitMqAddress, []amqp.Binding{})
+	broker, err := amqp.New(rabbitMqClientId, rabbitMqAddress, []amqp.Binding{portals.GetBinding()})
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to instantiate broker")
 		return nil, ErrCannotInstantiateApp
