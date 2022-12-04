@@ -1,0 +1,394 @@
+openapi: 3.0.2
+info:
+  version: 1.0.0
+  title: Dofus-portals External APIs
+  description: This API aims to provide interactions for external applications. Every multilingual fields are returned with the key instead of a label, since the i18n is managed on client side. All resources are protected by an API key.
+  contact:
+    name: Dofus-portals
+    url: https://discord.gg/f2vvQfYS8U
+tags:
+  - name: servers
+    description: Dofus game servers
+  - name: dimensions
+    description: Dofus game dimensions
+  - name: portals
+    description: Portal positions for a server
+security:
+  - ApiKeyAuth: []
+paths:
+  /external/v1/servers:
+    get:
+      tags:
+        - servers
+      summary: Returns the whole server list.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Server'
+        '400':
+          $ref: '#/components/responses/IntendedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /external/v1/dimensions:
+    get:
+      tags:
+        - dimensions
+      summary: Returns the whole dimension list.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dimension'
+        '400':
+          $ref: '#/components/responses/IntendedError'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /external/v1/servers/{serverId}/portals:
+    get:
+      tags:
+        - portals
+      summary: Returns the whole portal positions list of a server.
+      parameters:
+        - name: serverId
+          in: path
+          description: Server of the concerned portal
+          required: true
+          schema:
+            type: string
+            example: agride
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Portal'
+        '400':
+          $ref: '#/components/responses/IntendedError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /external/v1/servers/{serverId}/portals/{dimensionId}:
+    get:
+      tags:
+        - portals
+      summary: Returns one portal position of a server.
+      parameters:
+        - name: serverId
+          in: path
+          description: Server of the concerned portal
+          required: true
+          schema:
+            type: string
+            example: agride
+        - name: dimensionId
+          in: path
+          description: Dimension of the concerned portal
+          required: true
+          schema:
+            type: string
+            example: enutrosor
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portal'
+        '400':
+          $ref: '#/components/responses/IntendedError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+  /external/v1/servers/{serverId}/portals/{dimensionId}/history:
+    get:
+      tags:
+        - portals
+      summary: Returns the history of a portal position for the last 48h.
+      parameters:
+        - name: serverId
+          in: path
+          description: Server of the concerned portal
+          required: true
+          schema:
+            type: string
+            example: agride
+        - name: dimensionId
+          in: path
+          description: Dimension of the concerned portal
+          required: true
+          schema:
+            type: string
+            example: enutrosor
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortalHistory'
+        '400':
+          $ref: '#/components/responses/IntendedError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+components:
+  schemas:
+    Server:
+      title: Server
+      description: Dofus game server
+      type: object
+      required:
+        - id
+        - community
+        - type
+        - active
+      properties:
+        id:
+          description: Name of the server, used as an id.
+          type: string
+          example: agride
+        community:
+          description: Community of the server. Most of the time, it is a specific region in Europe.
+          type: string
+          enum:
+            - all
+            - fr
+            - es
+            - pt
+          example: fr
+        type:
+          description: Type of the server. Most of the servers are multi-account.
+          type: string
+          enum:
+            - multi
+            - mono
+            - heroic
+            - epic
+            - event
+          example: multi
+        active:
+          description: Define if the server is accessible for players or not
+          type: boolean
+          example: true
+    Dimension:
+      title: Dimension
+      description: Dofus game dimension
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          description: Name of the dimension, used as an id.
+          type: string
+          example: enutrosor
+    Portal:
+      title: Portal
+      description: Portal position at a specific moment. If the position is not filled, then the portal position is considered as unknown and some fields will not be present.
+      type: object
+      required:
+        - server
+        - dimension
+      properties:
+        server:
+          description: Name of the server
+          type: string
+          example: agride
+        dimension:
+          description: Name of the dimension
+          type: string
+          example: enutrosor
+        remainingUses:
+          description: Remaining number of uses.
+          type: number
+          minimum: 0
+          maximum: 128
+          default: 128
+          example: 42
+        position:
+          $ref: '#/components/schemas/Position'
+        createdBy:
+          $ref: '#/components/schemas/User'
+        updatedBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          description: Date of the last updated position.
+          type: string
+          format: date-time
+          example: '2020-07-21T17:32:28Z'
+        updatedAt:
+          description: Date of the last updated portal.
+          type: string
+          format: date-time
+          example: '2020-07-21T17:32:28Z'
+    Position:
+      title: Position
+      description: Position [x, y] in Dofus map
+      type: object
+      required:
+        - x
+        - 'y'
+      properties:
+        x:
+          description: x value in [x, y].
+          type: number
+          minimum: -999
+          maximum: 999
+          example: 5
+        'y':
+          description: y value in [x, y].
+          type: number
+          minimum: -999
+          maximum: 999
+          example: -18
+        isInCanopy:
+          description: Is the position in the canopy or not.
+          type: boolean
+        transport:
+          $ref: '#/components/schemas/Transport'
+        conditionalTransport:
+          $ref: '#/components/schemas/Transport'
+    User:
+      title: User
+      description: User that has added or updated the last position
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          description: Name of the user
+          type: string
+          example: Xx-Roksor-xX
+    Transport:
+      title: Transport
+      description: Transport used to access to a position easily
+      type: object
+      required:
+        - area
+        - subArea
+        - type
+        - x
+        - 'y'
+      properties:
+        area:
+          description: Area where the transport is localized.
+          type: string
+          example: astrub
+        subArea:
+          description: Sub area where the transport is localized.
+          type: string
+          example: cite_astrub
+        type:
+          description: Type of the transport. Most of the transport are zaaps.
+          type: string
+          enum:
+            - zaap
+            - foreuse
+            - diligence
+            - brigandin
+            - frigostien
+            - skis
+            - scaeroplane
+            - char_a_voile
+          example: zaap
+        x:
+          description: x value in [x, y].
+          type: number
+          minimum: -999
+          maximum: 999
+          example: 5
+        'y':
+          description: y value in [x, y].
+          type: number
+          minimum: -999
+          maximum: 999
+          example: -18
+    PortalHistory:
+      title: PortalHistory
+      description: Portal position value at a specific period.
+      type: object
+      properties:
+        position:
+          $ref: '#/components/schemas/Position'
+        remainingUses:
+          description: Remaining number of uses.
+          type: number
+          minimum: 0
+          maximum: 128
+          default: 128
+          example: 42
+        isInCanopy:
+          description: Is the portal position in the canopy or not.
+          type: boolean
+          default: false
+    IntendedError:
+      title: IntendedError
+      x-go-name: IntendedError
+      description: Error that comes when trying to validate and sanitize inputs
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          description: Code of the functional error
+          type: string
+          enum:
+            - accept_language.is_bad
+            - accept_language.not_found
+            - dimension.not_found
+            - id.is_bad
+            - login.not_found
+            - mail.is_bad
+            - mail.not_found
+            - name.is_bad
+            - name.not_found
+            - password.is_bad
+            - password.not_found
+            - portal.is_bad
+            - portal.position.is_bad
+            - server.not_found
+            - token.not_found
+          example: server.not_found
+  responses:
+    Created:
+      description: Created
+    IntendedError:
+      x-go-name: IntendedErrorResponse
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IntendedError'
+    UnexpectedError:
+      description: Internal server error
+    Unauthorized:
+      description: Unauthorized
+    Forbidden:
+      description: Forbidden
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: token
