@@ -11,8 +11,8 @@ import (
 var (
 	SourceDofusPortals = Source{
 		Name: "dofus-portals.fr",
-		Icon: "https://dofus-portals.fr/favicon.ico",
-		Url: "https://dofus-portals.fr",
+		Icon: "https://i.imgur.com/j8p3M2D.png",
+		Url:  "https://dofus-portals.fr",
 	}
 )
 

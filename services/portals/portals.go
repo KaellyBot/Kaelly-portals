@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
@@ -22,6 +23,7 @@ const (
 
 var (
 	errInvalidMessage = errors.New("Invalid request portal, type is not the good one and/or the dedicated message is not filled")
+	errStatusNotOK    = errors.New("Status Code is not OK")
 )
 
 type PortalsServiceInterface interface {
@@ -78,11 +80,21 @@ func (service *PortalsService) consume(ctx context.Context, message *amqp.Rabbit
 	server := message.GetPortalPositionRequest().GetServer()
 	dimension := message.GetPortalPositionRequest().GetDimension()
 
+	log.Info().
+		Str(models.LogCorrelationId, correlationId).
+		Str(models.LogServerId, server).
+		Str(models.LogDimensionId, dimension).
+		Msgf("Treating request")
+
 	portals := make([]*amqp.PortalPositionAnswer_PortalPosition, 0)
 	if dimension != "" {
 		dofusPortal, err := service.getPortal(ctx, server, dimension)
 		if err != nil {
-			log.Error().Err(err).Str(models.LogCorrelationId, correlationId).Msgf("Returning failed message")
+			log.Error().Err(err).
+				Str(models.LogCorrelationId, correlationId).
+				Str(models.LogServerId, server).
+				Str(models.LogDimensionId, dimension).
+				Msgf("Returning failed message")
 			service.publishPortalAnswerFailed(correlationId, message.Language)
 			return
 		}
@@ -92,7 +104,10 @@ func (service *PortalsService) consume(ctx context.Context, message *amqp.Rabbit
 	} else {
 		dofusPortals, err := service.getPortals(ctx, server)
 		if err != nil {
-			log.Error().Err(err).Str(models.LogCorrelationId, correlationId).Msgf("Returning failed message")
+			log.Error().Err(err).
+				Str(models.LogCorrelationId, correlationId).
+				Str(models.LogServerId, server).
+				Msgf("Returning failed message")
 			service.publishPortalAnswerFailed(correlationId, message.Language)
 			return
 		}
@@ -118,6 +133,10 @@ func (service *PortalsService) getPortals(ctx context.Context, server string) ([
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, errStatusNotOK
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -139,6 +158,10 @@ func (service *PortalsService) getPortal(ctx context.Context, server, dimension 
 		return dofusportals.Portal{}, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return dofusportals.Portal{}, errStatusNotOK
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
