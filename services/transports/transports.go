@@ -10,7 +10,7 @@ type TransportService interface {
 }
 
 type TransportServiceImpl struct {
-	transportTypes    map[string]*entities.TransportType
+	transportTypes    map[string]entities.TransportType
 	transportTypeRepo transports.TransportTypeRepository
 }
 
@@ -20,9 +20,9 @@ func New(transportTypeRepo transports.TransportTypeRepository) (*TransportServic
 		return nil, err
 	}
 
-	transportTypes := make(map[string]*entities.TransportType)
+	transportTypes := make(map[string]entities.TransportType)
 	for _, transportType := range transportTypeEntities {
-		transportTypes[transportType.DofusPortalsId] = &transportType
+		transportTypes[transportType.DofusPortalsId] = transportType
 	}
 
 	return &TransportServiceImpl{
@@ -33,5 +33,5 @@ func New(transportTypeRepo transports.TransportTypeRepository) (*TransportServic
 
 func (service *TransportServiceImpl) FindTransportTypeByDofusPortalsId(dofusPortalsId string) (entities.TransportType, bool) {
 	transportType, found := service.transportTypes[dofusPortalsId]
-	return *transportType, found
+	return transportType, found
 }

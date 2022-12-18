@@ -10,7 +10,7 @@ type AreaService interface {
 }
 
 type AreaServiceImpl struct {
-	areas    map[string]*entities.Area
+	areas    map[string]entities.Area
 	areaRepo areas.AreaRepository
 }
 
@@ -20,9 +20,9 @@ func New(areaRepo areas.AreaRepository) (*AreaServiceImpl, error) {
 		return nil, err
 	}
 
-	areas := make(map[string]*entities.Area)
+	areas := make(map[string]entities.Area)
 	for _, area := range areaEntities {
-		areas[area.DofusPortalsId] = &area
+		areas[area.DofusPortalsId] = area
 	}
 
 	return &AreaServiceImpl{
@@ -33,5 +33,5 @@ func New(areaRepo areas.AreaRepository) (*AreaServiceImpl, error) {
 
 func (service *AreaServiceImpl) FindAreaByDofusPortalsId(dofusPortalsId string) (entities.Area, bool) {
 	area, found := service.areas[dofusPortalsId]
-	return *area, found
+	return area, found
 }

@@ -15,6 +15,8 @@ func MapPortal(portal dofusportals.Portal) *amqp.PortalPositionAnswer_PortalPosi
 		remainingUses = int32(*portal.RemainingUses)
 	}
 
+	// TODO map entity ids
+
 	return &amqp.PortalPositionAnswer_PortalPosition{
 		Server:        portal.Server,
 		Dimension:     portal.Dimension,

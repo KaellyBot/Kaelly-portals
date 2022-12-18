@@ -26,6 +26,9 @@ const (
 	requestQueueName   = "portals-requests"
 	requestsRoutingkey = "requests.portals"
 	answersRoutingkey  = "answers.portals"
+
+	httpHeader   = "header"
+	httpApiToken = "token"
 )
 
 var (
@@ -52,7 +55,7 @@ func New(broker amqp.MessageBrokerInterface, serverService servers.ServerService
 	dimensionService dimensions.DimensionService, areaService areas.AreaService,
 	subAreaService subareas.SubAreaService, transportService transports.TransportService) (*PortalsServiceImpl, error) {
 
-	apiKeyProvider, err := securityprovider.NewSecurityProviderApiKey("header", "token", viper.GetString(constants.DofusPortalsToken))
+	apiKeyProvider, err := securityprovider.NewSecurityProviderApiKey(httpHeader, httpApiToken, viper.GetString(constants.DofusPortalsToken))
 	if err != nil {
 		return nil, err
 	}
@@ -92,50 +95,50 @@ func (service *PortalsServiceImpl) Consume() error {
 
 func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.RabbitMQMessage, correlationId string) {
 	if !isValidPortalRequest(message) {
-		log.Error().Err(errInvalidMessage).Str(constants.LogCorrelationId, correlationId).Msgf("Returning failed message")
+		log.Error().Err(errInvalidMessage).Str(constants.LogCorrelationId, correlationId).Msgf("Cannot treat request, returning failed message")
 		service.publishPortalAnswerFailed(correlationId, message.Language)
 		return
 	}
 
-	// TODO map server/dimension into dofus portals ids
-	server := message.GetPortalPositionRequest().GetServer()
-	dimension := message.GetPortalPositionRequest().GetDimension()
+	serverId := message.GetPortalPositionRequest().GetServer()
+	dimensionId := message.GetPortalPositionRequest().GetDimension()
 
 	log.Info().
 		Str(constants.LogCorrelationId, correlationId).
-		Str(constants.LogServerId, server).
-		Str(constants.LogDimensionId, dimension).
+		Str(constants.LogServerId, serverId).
+		Str(constants.LogDimensionId, dimensionId).
 		Msgf("Treating request")
 
+	dofusPortalsServerId := service.getDofusPortalsServerId(serverId)
+
 	portals := make([]*amqp.PortalPositionAnswer_PortalPosition, 0)
-	if dimension != "" {
-		dofusPortal, err := service.getPortal(ctx, server, dimension)
+	if dimensionId != "" {
+		dofusPortalsDimensionId := service.getDofusPortalsDimensionId(dimensionId)
+		dofusPortal, err := service.getPortal(ctx, dofusPortalsServerId, dofusPortalsDimensionId)
 		if err != nil {
 			log.Error().Err(err).
 				Str(constants.LogCorrelationId, correlationId).
-				Str(constants.LogServerId, server).
-				Str(constants.LogDimensionId, dimension).
+				Str(constants.LogServerId, serverId).
+				Str(constants.LogDimensionId, dimensionId).
 				Msgf("Returning failed message")
 			service.publishPortalAnswerFailed(correlationId, message.Language)
 			return
 		}
 
-		// TODO map dofus-portals ids in kaelly ones
 		portals = append(portals, mappers.MapPortal(dofusPortal))
 
 	} else {
-		dofusPortals, err := service.getPortals(ctx, server)
+		dofusPortals, err := service.getPortals(ctx, dofusPortalsServerId)
 		if err != nil {
 			log.Error().Err(err).
 				Str(constants.LogCorrelationId, correlationId).
-				Str(constants.LogServerId, server).
+				Str(constants.LogServerId, serverId).
 				Msgf("Returning failed message")
 			service.publishPortalAnswerFailed(correlationId, message.Language)
 			return
 		}
 
 		for _, dofusPortal := range dofusPortals {
-			// TODO map dofus-portals ids in kaelly ones
 			portals = append(portals, mappers.MapPortal(dofusPortal))
 		}
 	}
@@ -145,6 +148,26 @@ func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.Ra
 
 func isValidPortalRequest(message *amqp.RabbitMQMessage) bool {
 	return message.Type == amqp.RabbitMQMessage_PORTAL_POSITION_REQUEST && message.GetPortalPositionRequest() != nil
+}
+
+func (service *PortalsServiceImpl) getDofusPortalsServerId(serverId string) string {
+	server, found := service.serverService.GetServer(serverId)
+	if !found {
+		log.Warn().Str(constants.LogServerId, serverId).Msgf("Server not found, returning internal server Id")
+		return serverId
+	}
+
+	return server.DofusPortalsId
+}
+
+func (service *PortalsServiceImpl) getDofusPortalsDimensionId(dimensionId string) string {
+	dimension, found := service.dimensionService.GetDimension(dimensionId)
+	if !found {
+		log.Warn().Str(constants.LogDimensionId, dimensionId).Msgf("Dimension not found, returning internal dimension Id")
+		return dimensionId
+	}
+
+	return dimension.DofusPortalsId
 }
 
 func (service *PortalsServiceImpl) getPortals(ctx context.Context, server string) ([]dofusportals.Portal, error) {

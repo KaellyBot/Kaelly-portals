@@ -10,7 +10,7 @@ type ServerService interface {
 }
 
 type ServerServiceImpl struct {
-	servers    map[string]*entities.Server
+	servers    map[string]entities.Server
 	serverRepo servers.ServerRepository
 }
 
@@ -20,9 +20,10 @@ func New(serverRepo servers.ServerRepository) (*ServerServiceImpl, error) {
 		return nil, err
 	}
 
-	servers := make(map[string]*entities.Server)
+	servers := make(map[string]entities.Server)
 	for _, server := range serverEntities {
-		servers[server.Id] = &server
+
+		servers[server.Id] = server
 	}
 
 	return &ServerServiceImpl{
@@ -33,5 +34,5 @@ func New(serverRepo servers.ServerRepository) (*ServerServiceImpl, error) {
 
 func (service *ServerServiceImpl) GetServer(id string) (entities.Server, bool) {
 	server, found := service.servers[id]
-	return *server, found
+	return server, found
 }
