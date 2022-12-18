@@ -1,4 +1,4 @@
-package models
+package constants
 
 import "github.com/rs/zerolog"
 
