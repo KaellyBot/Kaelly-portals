@@ -125,7 +125,8 @@ func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.Ra
 			return
 		}
 
-		portals = append(portals, mappers.MapPortal(dofusPortal))
+		portals = append(portals, mappers.MapPortal(dofusPortal, service.serverService, service.dimensionService,
+			service.areaService, service.subAreaService, service.transportService))
 
 	} else {
 		dofusPortals, err := service.getPortals(ctx, dofusPortalsServerId)
@@ -139,7 +140,8 @@ func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.Ra
 		}
 
 		for _, dofusPortal := range dofusPortals {
-			portals = append(portals, mappers.MapPortal(dofusPortal))
+			portals = append(portals, mappers.MapPortal(dofusPortal, service.serverService, service.dimensionService,
+				service.areaService, service.subAreaService, service.transportService))
 		}
 	}
 
