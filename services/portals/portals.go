@@ -100,8 +100,8 @@ func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.Ra
 		return
 	}
 
-	serverId := message.GetPortalPositionRequest().GetServer()
-	dimensionId := message.GetPortalPositionRequest().GetDimension()
+	serverId := message.GetPortalPositionRequest().GetServerId()
+	dimensionId := message.GetPortalPositionRequest().GetDimensionId()
 
 	log.Info().
 		Str(constants.LogCorrelationId, correlationId).

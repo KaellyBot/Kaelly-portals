@@ -26,8 +26,8 @@ func MapPortal(portal dofusportals.Portal, serverService servers.ServerService,
 	}
 
 	return &amqp.PortalPositionAnswer_PortalPosition{
-		Server:        getInternalServerId(portal.Server, serverService),
-		Dimension:     getInternalDimensionId(portal.Dimension, dimensionService),
+		ServerId:        getInternalServerId(portal.Server, serverService),
+		DimensionId:     getInternalDimensionId(portal.Dimension, dimensionService),
 		Position:      mapPosition(portal.Position, areaService, subAreaService, transportService),
 		RemainingUses: remainingUses,
 		CreatedBy:     mapUser(portal.CreatedBy),
@@ -67,11 +67,11 @@ func mapTransport(transport *dofusportals.Transport, areaService areas.AreaServi
 	}
 
 	return &amqp.PortalPositionAnswer_PortalPosition_Position_Transport{
-		Area:    getInternalAreaId(transport.Area, areaService),
-		SubArea: getInternalSubAreaId(transport.SubArea, subAreaService),
-		Type:    getInternalTransportTypeId(string(transport.Type), transportService),
-		X:       int32(transport.X),
-		Y:       int32(transport.Y),
+		AreaId:    getInternalAreaId(transport.Area, areaService),
+		SubAreaId: getInternalSubAreaId(transport.SubArea, subAreaService),
+		TypeId:    getInternalTransportTypeId(string(transport.Type), transportService),
+		X:         int32(transport.X),
+		Y:         int32(transport.Y),
 	}
 }
 
