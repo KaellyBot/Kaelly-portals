@@ -224,7 +224,7 @@ func (service *PortalsServiceImpl) getPortal(ctx context.Context, server, dimens
 	return portal, nil
 }
 
-func (service *PortalsServiceImpl) publishPortalAnswerFailed(correlationId string, language amqp.RabbitMQMessage_Language) {
+func (service *PortalsServiceImpl) publishPortalAnswerFailed(correlationId string, language amqp.Language) {
 	message := amqp.RabbitMQMessage{
 		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
 		Status:   amqp.RabbitMQMessage_FAILED,
@@ -238,7 +238,7 @@ func (service *PortalsServiceImpl) publishPortalAnswerFailed(correlationId strin
 }
 
 func (service *PortalsServiceImpl) publishPortalAnswerSuccess(portals []*amqp.PortalPositionAnswer_PortalPosition,
-	correlationId string, language amqp.RabbitMQMessage_Language) {
+	correlationId string, language amqp.Language) {
 
 	message := amqp.RabbitMQMessage{
 		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
