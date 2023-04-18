@@ -7,7 +7,7 @@ go 1.18
 require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/getkin/kin-openapi v0.110.0
-	github.com/kaellybot/kaelly-amqp v0.0.1-beta5
+	github.com/kaellybot/kaelly-amqp v0.0.1-beta6
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/viper v1.14.0
 	google.golang.org/protobuf v1.30.0

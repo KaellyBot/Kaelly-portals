@@ -30,8 +30,10 @@ func initConfig() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal().Err(err).Str(constants.LogFileName, constants.ConfigFileName).Msgf("Failed to read config, shutting down.")
+		log.Debug().Str(constants.LogFileName, constants.ConfigFileName).Msgf("Failed to read config file, continue...")
 	}
+
+	viper.AutomaticEnv()
 }
 
 func initLog() {
