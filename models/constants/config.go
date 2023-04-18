@@ -8,9 +8,6 @@ const (
 	// Dofus Portals Token
 	DofusPortalsToken = "DOFUS_PORTALS_TOKEN"
 
-	// Timeout to retrieve portals in seconds
-	HttpTimeout = "HTTP_TIMEOUT"
-
 	// MySQL URL with the following format: HOST:PORT
 	MySqlUrl = "MYSQL_URL"
 
@@ -26,6 +23,12 @@ const (
 	// RabbitMQ address
 	RabbitMqAddress = "RABBITMQ_ADDRESS"
 
+	// Timeout to retrieve portals in seconds
+	HttpTimeout = "HTTP_TIMEOUT"
+
+	// Metric port
+	MetricPort = "METRIC_PORT"
+
 	// Zerolog values from [trace, debug, info, warn, error, fatal, panic]
 	LogLevel = "LOG_LEVEL"
 
@@ -36,12 +39,13 @@ const (
 var (
 	DefaultConfigValues = map[string]interface{}{
 		DofusPortalsToken: "",
-		HttpTimeout:       10,
 		MySqlUrl:          "localhost:3306",
 		MySqlUser:         "",
 		MySqlPassword:     "",
 		MySqlDatabase:     "kaellybot",
 		RabbitMqAddress:   "amqp://localhost:5672",
+		HttpTimeout:       10,
+		MetricPort:        2112,
 		LogLevel:          zerolog.InfoLevel.String(),
 		Production:        false,
 	}
