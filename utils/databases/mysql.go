@@ -20,11 +20,11 @@ type MySQLConnectionImpl struct {
 }
 
 func New() (*MySQLConnectionImpl, error) {
-	dbUser := viper.GetString(constants.MySqlUser)
-	dbPassword := viper.GetString(constants.MySqlPassword)
-	dbUrl := viper.GetString(constants.MySqlUrl)
-	dbName := viper.GetString(constants.MySqlDatabase)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true&loc=Local", dbUser, dbPassword, dbUrl, dbName)
+	dbUser := viper.GetString(constants.MySQLUser)
+	dbPassword := viper.GetString(constants.MySQLPassword)
+	dbURL := viper.GetString(constants.MySQLURL)
+	dbName := viper.GetString(constants.MySQLDatabase)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true&loc=Local", dbUser, dbPassword, dbURL, dbName)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {

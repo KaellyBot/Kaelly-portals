@@ -3,8 +3,7 @@ package portals
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -22,53 +21,23 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	requestQueueName   = "portals-requests"
-	requestsRoutingkey = "requests.portals"
-	answersRoutingkey  = "answers.portals"
-
-	httpHeader   = "header"
-	httpApiToken = "token"
-)
-
-var (
-	errInvalidMessage = errors.New("Invalid request portal, type is not the good one and/or the dedicated message is not filled")
-	errStatusNotOK    = errors.New("Status Code is not OK")
-)
-
-type PortalsService interface {
-	Consume() error
-}
-
-type PortalsServiceImpl struct {
-	dofusPortalsClient dofusportals.ClientInterface
-	broker             amqp.MessageBrokerInterface
-	httpTimeout        time.Duration
-	serverService      servers.ServerService
-	dimensionService   dimensions.DimensionService
-	areaService        areas.AreaService
-	subAreaService     subareas.SubAreaService
-	transportService   transports.TransportService
-}
-
-func New(broker amqp.MessageBrokerInterface, serverService servers.ServerService,
-	dimensionService dimensions.DimensionService, areaService areas.AreaService,
-	subAreaService subareas.SubAreaService, transportService transports.TransportService) (*PortalsServiceImpl, error) {
-
-	apiKeyProvider, err := securityprovider.NewSecurityProviderApiKey(httpHeader, httpApiToken, viper.GetString(constants.DofusPortalsToken))
+func New(broker amqp.MessageBroker, serverService servers.Service,
+	dimensionService dimensions.Service, areaService areas.Service,
+	subAreaService subareas.Service, transportService transports.Service) (*Impl, error) {
+	apiKeyProvIDer, err := securityprovider.NewSecurityProviderApiKey(httpHeader, httpApiToken, viper.GetString(constants.DofusPortalsToken))
 	if err != nil {
 		return nil, err
 	}
 
 	dofusPortalsClient, err := dofusportals.NewClient(
-		constants.DofusPortalsUrl,
-		dofusportals.WithRequestEditorFn(apiKeyProvider.Intercept),
+		constants.DofusPortalsURL,
+		dofusportals.WithRequestEditorFn(apiKeyProvIDer.Intercept),
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PortalsServiceImpl{
+	return &Impl{
 		serverService:      serverService,
 		dimensionService:   dimensionService,
 		areaService:        areaService,
@@ -76,7 +45,7 @@ func New(broker amqp.MessageBrokerInterface, serverService servers.ServerService
 		transportService:   transportService,
 		broker:             broker,
 		dofusPortalsClient: dofusPortalsClient,
-		httpTimeout:        time.Duration(viper.GetInt(constants.HttpTimeout)) * time.Second,
+		httpTimeout:        time.Duration(viper.GetInt(constants.DofusPortalsTimeout)) * time.Second,
 	}, nil
 }
 
@@ -88,40 +57,40 @@ func GetBinding() amqp.Binding {
 	}
 }
 
-func (service *PortalsServiceImpl) Consume() error {
+func (service *Impl) Consume() error {
 	log.Info().Msgf("Consuming portal requests...")
-	return service.broker.Consume(requestQueueName, requestsRoutingkey, service.consume)
+	return service.broker.Consume(requestQueueName, service.consume)
 }
 
-func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.RabbitMQMessage, correlationId string) {
+func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage, correlationID string) {
 	if !isValidPortalRequest(message) {
-		log.Error().Err(errInvalidMessage).Str(constants.LogCorrelationId, correlationId).Msgf("Cannot treat request, returning failed message")
-		service.publishPortalAnswerFailed(correlationId, message.Language)
+		log.Error().Err(errInvalidMessage).Str(constants.LogCorrelationID, correlationID).Msgf("Cannot treat request, returning failed message")
+		service.publishPortalAnswerFailed(correlationID, message.Language)
 		return
 	}
 
-	serverId := message.GetPortalPositionRequest().GetServerId()
-	dimensionId := message.GetPortalPositionRequest().GetDimensionId()
+	serverID := message.GetPortalPositionRequest().GetServerId()
+	dimensionID := message.GetPortalPositionRequest().GetDimensionId()
 
 	log.Info().
-		Str(constants.LogCorrelationId, correlationId).
-		Str(constants.LogServerId, serverId).
-		Str(constants.LogDimensionId, dimensionId).
+		Str(constants.LogCorrelationID, correlationID).
+		Str(constants.LogServerID, serverID).
+		Str(constants.LogDimensionID, dimensionID).
 		Msgf("Treating request")
 
-	dofusPortalsServerId := service.getDofusPortalsServerId(serverId)
+	dofusPortalsServerID := service.getDofusPortalsServerID(serverID)
 
 	portals := make([]*amqp.PortalPositionAnswer_PortalPosition, 0)
-	if dimensionId != "" {
-		dofusPortalsDimensionId := service.getDofusPortalsDimensionId(dimensionId)
-		dofusPortal, err := service.getPortal(ctx, dofusPortalsServerId, dofusPortalsDimensionId)
+	if dimensionID != "" {
+		dofusPortalsDimensionID := service.getDofusPortalsDimensionID(dimensionID)
+		dofusPortal, err := service.getPortal(ctx, dofusPortalsServerID, dofusPortalsDimensionID)
 		if err != nil {
 			log.Error().Err(err).
-				Str(constants.LogCorrelationId, correlationId).
-				Str(constants.LogServerId, serverId).
-				Str(constants.LogDimensionId, dimensionId).
+				Str(constants.LogCorrelationID, correlationID).
+				Str(constants.LogServerID, serverID).
+				Str(constants.LogDimensionID, dimensionID).
 				Msgf("Returning failed message")
-			service.publishPortalAnswerFailed(correlationId, message.Language)
+			service.publishPortalAnswerFailed(correlationID, message.Language)
 			return
 		}
 
@@ -129,13 +98,13 @@ func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.Ra
 			service.areaService, service.subAreaService, service.transportService))
 
 	} else {
-		dofusPortals, err := service.getPortals(ctx, dofusPortalsServerId)
+		dofusPortals, err := service.getPortals(ctx, dofusPortalsServerID)
 		if err != nil {
 			log.Error().Err(err).
-				Str(constants.LogCorrelationId, correlationId).
-				Str(constants.LogServerId, serverId).
+				Str(constants.LogCorrelationID, correlationID).
+				Str(constants.LogServerID, serverID).
 				Msgf("Returning failed message")
-			service.publishPortalAnswerFailed(correlationId, message.Language)
+			service.publishPortalAnswerFailed(correlationID, message.Language)
 			return
 		}
 
@@ -145,34 +114,34 @@ func (service *PortalsServiceImpl) consume(ctx context.Context, message *amqp.Ra
 		}
 	}
 
-	service.publishPortalAnswerSuccess(portals, correlationId, message.Language)
+	service.publishPortalAnswerSuccess(portals, correlationID, message.Language)
 }
 
 func isValidPortalRequest(message *amqp.RabbitMQMessage) bool {
 	return message.Type == amqp.RabbitMQMessage_PORTAL_POSITION_REQUEST && message.GetPortalPositionRequest() != nil
 }
 
-func (service *PortalsServiceImpl) getDofusPortalsServerId(serverId string) string {
-	server, found := service.serverService.GetServer(serverId)
+func (service *Impl) getDofusPortalsServerID(serverID string) string {
+	server, found := service.serverService.GetServer(serverID)
 	if !found {
-		log.Warn().Str(constants.LogServerId, serverId).Msgf("Server not found, returning internal server Id")
-		return serverId
+		log.Warn().Str(constants.LogServerID, serverID).Msgf("Server not found, returning internal server ID")
+		return serverID
 	}
 
-	return server.DofusPortalsId
+	return server.DofusPortalsID
 }
 
-func (service *PortalsServiceImpl) getDofusPortalsDimensionId(dimensionId string) string {
-	dimension, found := service.dimensionService.GetDimension(dimensionId)
+func (service *Impl) getDofusPortalsDimensionID(dimensionID string) string {
+	dimension, found := service.dimensionService.GetDimension(dimensionID)
 	if !found {
-		log.Warn().Str(constants.LogDimensionId, dimensionId).Msgf("Dimension not found, returning internal dimension Id")
-		return dimensionId
+		log.Warn().Str(constants.LogDimensionID, dimensionID).Msgf("Dimension not found, returning internal dimension ID")
+		return dimensionID
 	}
 
-	return dimension.DofusPortalsId
+	return dimension.DofusPortalsID
 }
 
-func (service *PortalsServiceImpl) getPortals(ctx context.Context, server string) ([]dofusportals.Portal, error) {
+func (service *Impl) getPortals(ctx context.Context, server string) ([]dofusportals.Portal, error) {
 	ctx, cancel := context.WithTimeout(ctx, service.httpTimeout)
 	defer cancel()
 	resp, err := service.dofusPortalsClient.GetExternalV1ServersServerIdPortals(ctx, server)
@@ -185,7 +154,7 @@ func (service *PortalsServiceImpl) getPortals(ctx context.Context, server string
 		return nil, errStatusNotOK
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +167,7 @@ func (service *PortalsServiceImpl) getPortals(ctx context.Context, server string
 	return portals, nil
 }
 
-func (service *PortalsServiceImpl) getPortal(ctx context.Context, server, dimension string) (dofusportals.Portal, error) {
+func (service *Impl) getPortal(ctx context.Context, server, dimension string) (dofusportals.Portal, error) {
 	ctx, cancel := context.WithTimeout(ctx, service.httpTimeout)
 	defer cancel()
 	resp, err := service.dofusPortalsClient.GetExternalV1ServersServerIdPortalsDimensionId(ctx, server, dimension)
@@ -211,7 +180,7 @@ func (service *PortalsServiceImpl) getPortal(ctx context.Context, server, dimens
 		return dofusportals.Portal{}, errStatusNotOK
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return dofusportals.Portal{}, err
 	}
@@ -224,22 +193,21 @@ func (service *PortalsServiceImpl) getPortal(ctx context.Context, server, dimens
 	return portal, nil
 }
 
-func (service *PortalsServiceImpl) publishPortalAnswerFailed(correlationId string, language amqp.Language) {
+func (service *Impl) publishPortalAnswerFailed(correlationID string, language amqp.Language) {
 	message := amqp.RabbitMQMessage{
 		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
 		Status:   amqp.RabbitMQMessage_FAILED,
 		Language: language,
 	}
 
-	err := service.broker.Publish(&message, amqp.ExchangeAnswer, answersRoutingkey, correlationId)
+	err := service.broker.Publish(&message, amqp.ExchangeAnswer, answersRoutingkey, correlationID)
 	if err != nil {
-		log.Error().Err(err).Str(constants.LogCorrelationId, correlationId).Msgf("Cannot publish via broker, request ignored")
+		log.Error().Err(err).Str(constants.LogCorrelationID, correlationID).Msgf("Cannot publish via broker, request ignored")
 	}
 }
 
-func (service *PortalsServiceImpl) publishPortalAnswerSuccess(portals []*amqp.PortalPositionAnswer_PortalPosition,
-	correlationId string, language amqp.Language) {
-
+func (service *Impl) publishPortalAnswerSuccess(portals []*amqp.PortalPositionAnswer_PortalPosition,
+	correlationID string, language amqp.Language) {
 	message := amqp.RabbitMQMessage{
 		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
 		Status:   amqp.RabbitMQMessage_SUCCESS,
@@ -249,8 +217,8 @@ func (service *PortalsServiceImpl) publishPortalAnswerSuccess(portals []*amqp.Po
 		},
 	}
 
-	err := service.broker.Publish(&message, amqp.ExchangeAnswer, answersRoutingkey, correlationId)
+	err := service.broker.Publish(&message, amqp.ExchangeAnswer, answersRoutingkey, correlationID)
 	if err != nil {
-		log.Error().Err(err).Str(constants.LogCorrelationId, correlationId).Msgf("Cannot publish via broker, request ignored")
+		log.Error().Err(err).Str(constants.LogCorrelationID, correlationID).Msgf("Cannot publish via broker, request ignored")
 	}
 }

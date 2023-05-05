@@ -16,9 +16,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func MapPortal(portal dofusportals.Portal, serverService servers.ServerService,
-	dimensionService dimensions.DimensionService, areaService areas.AreaService,
-	subAreaService subareas.SubAreaService, transportService transports.TransportService,
+func MapPortal(portal dofusportals.Portal, serverService servers.Service,
+	dimensionService dimensions.Service, areaService areas.Service,
+	Service subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition {
 	var remainingUses int32 = 0
 	if portal.RemainingUses != nil {
@@ -26,9 +26,9 @@ func MapPortal(portal dofusportals.Portal, serverService servers.ServerService,
 	}
 
 	return &amqp.PortalPositionAnswer_PortalPosition{
-		ServerId:        getInternalServerId(portal.Server, serverService),
-		DimensionId:     getInternalDimensionId(portal.Dimension, dimensionService),
-		Position:      mapPosition(portal.Position, areaService, subAreaService, transportService),
+		ServerId:      getInternalServerID(portal.Server, serverService),
+		DimensionId:   getInternalDimensionID(portal.Dimension, dimensionService),
+		Position:      mapPosition(portal.Position, areaService, Service, transportService),
 		RemainingUses: remainingUses,
 		CreatedBy:     mapUser(portal.CreatedBy),
 		CreatedAt:     mapTimestamp(portal.CreatedAt),
@@ -38,8 +38,8 @@ func MapPortal(portal dofusportals.Portal, serverService servers.ServerService,
 	}
 }
 
-func mapPosition(position *dofusportals.Position, areaService areas.AreaService,
-	subAreaService subareas.SubAreaService, transportService transports.TransportService,
+func mapPosition(position *dofusportals.Position, areaService areas.Service,
+	Service subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition_Position {
 	if position == nil {
 		return nil
@@ -54,22 +54,22 @@ func mapPosition(position *dofusportals.Position, areaService areas.AreaService,
 		X:                    int32(position.X),
 		Y:                    int32(position.Y),
 		IsInCanopy:           isInCanopy,
-		Transport:            mapTransport(position.Transport, areaService, subAreaService, transportService),
-		ConditionalTransport: mapTransport(position.ConditionalTransport, areaService, subAreaService, transportService),
+		Transport:            mapTransport(position.Transport, areaService, Service, transportService),
+		ConditionalTransport: mapTransport(position.ConditionalTransport, areaService, Service, transportService),
 	}
 }
 
-func mapTransport(transport *dofusportals.Transport, areaService areas.AreaService,
-	subAreaService subareas.SubAreaService, transportService transports.TransportService,
+func mapTransport(transport *dofusportals.Transport, areaService areas.Service,
+	Service subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition_Position_Transport {
 	if transport == nil {
 		return nil
 	}
 
 	return &amqp.PortalPositionAnswer_PortalPosition_Position_Transport{
-		AreaId:    getInternalAreaId(transport.Area, areaService),
-		SubAreaId: getInternalSubAreaId(transport.SubArea, subAreaService),
-		TypeId:    getInternalTransportTypeId(string(transport.Type), transportService),
+		AreaId:    getInternalAreaID(transport.Area, areaService),
+		SubAreaId: getInternalSubAreaID(transport.SubArea, Service),
+		TypeId:    getInternalTransportTypeID(string(transport.Type), transportService),
 		X:         int32(transport.X),
 		Y:         int32(transport.Y),
 	}
@@ -99,57 +99,57 @@ func mapSource(source models.Source) *amqp.PortalPositionAnswer_PortalPosition_S
 	}
 }
 
-func getInternalServerId(dofusPortalsId string, serverService servers.ServerService) string {
-	server, found := serverService.FindServerByDofusPortalsId(dofusPortalsId)
+func getInternalServerID(dofusPortalsID string, serverService servers.Service) string {
+	server, found := serverService.FindServerByDofusPortalsID(dofusPortalsID)
 	if found {
-		return server.Id
+		return server.ID
 	}
 
-	log.Warn().Str(constants.LogServerId, dofusPortalsId).
-		Msgf("Server not found with following dofusPortalsId, using it as internal one")
-	return dofusPortalsId
+	log.Warn().Str(constants.LogServerID, dofusPortalsID).
+		Msgf("Server not found with following dofusPortalsID, using it as internal one")
+	return dofusPortalsID
 }
 
-func getInternalDimensionId(dofusPortalsId string, dimensionService dimensions.DimensionService) string {
-	dimension, found := dimensionService.FindDimensionByDofusPortalsId(dofusPortalsId)
+func getInternalDimensionID(dofusPortalsID string, dimensionService dimensions.Service) string {
+	dimension, found := dimensionService.FindDimensionByDofusPortalsID(dofusPortalsID)
 	if found {
-		return dimension.Id
+		return dimension.ID
 	}
 
-	log.Warn().Str(constants.LogDimensionId, dofusPortalsId).
-		Msgf("Dimension not found with following dofusPortalsId, using it as internal one")
-	return dofusPortalsId
+	log.Warn().Str(constants.LogDimensionID, dofusPortalsID).
+		Msgf("Dimension not found with following dofusPortalsID, using it as internal one")
+	return dofusPortalsID
 }
 
-func getInternalAreaId(dofusPortalsId string, areaService areas.AreaService) string {
-	area, found := areaService.FindAreaByDofusPortalsId(dofusPortalsId)
+func getInternalAreaID(dofusPortalsID string, areaService areas.Service) string {
+	area, found := areaService.FindAreaByDofusPortalsID(dofusPortalsID)
 	if found {
-		return area.Id
+		return area.ID
 	}
 
-	log.Warn().Str(constants.LogAreaId, dofusPortalsId).
-		Msgf("Area not found with following dofusPortalsId, using it as internal one")
-	return dofusPortalsId
+	log.Warn().Str(constants.LogAreaID, dofusPortalsID).
+		Msgf("Area not found with following dofusPortalsID, using it as internal one")
+	return dofusPortalsID
 }
 
-func getInternalSubAreaId(dofusPortalsId string, subAreaService subareas.SubAreaService) string {
-	subArea, found := subAreaService.FindSubAreaByDofusPortalsId(dofusPortalsId)
+func getInternalSubAreaID(dofusPortalsID string, Service subareas.Service) string {
+	subArea, found := Service.FindSubAreaByDofusPortalsID(dofusPortalsID)
 	if found {
-		return subArea.Id
+		return subArea.ID
 	}
 
-	log.Warn().Str(constants.LogSubAreaId, dofusPortalsId).
-		Msgf("SubArea not found with following dofusPortalsId, using it as internal one")
-	return dofusPortalsId
+	log.Warn().Str(constants.LogSubAreaID, dofusPortalsID).
+		Msgf("SubArea not found with following dofusPortalsID, using it as internal one")
+	return dofusPortalsID
 }
 
-func getInternalTransportTypeId(dofusPortalsId string, transportService transports.TransportService) string {
-	transportType, found := transportService.FindTransportTypeByDofusPortalsId(dofusPortalsId)
+func getInternalTransportTypeID(dofusPortalsID string, transportService transports.Service) string {
+	transportType, found := transportService.FindTransportTypeByDofusPortalsID(dofusPortalsID)
 	if found {
-		return transportType.Id
+		return transportType.ID
 	}
 
-	log.Warn().Str(constants.LogTransportTypeId, dofusPortalsId).
-		Msgf("TransportType not found with following dofusPortalsId, using it as internal one")
-	return dofusPortalsId
+	log.Warn().Str(constants.LogTransportTypeID, dofusPortalsID).
+		Msgf("TransportType not found with following dofusPortalsID, using it as internal one")
+	return dofusPortalsID
 }

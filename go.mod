@@ -1,13 +1,13 @@
 module github.com/kaellybot/kaelly-portals
 
-go 1.18
+go 1.20
 
 // replace github.com/kaellybot/kaelly-amqp => ../kaelly-amqp
 
 require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/getkin/kin-openapi v0.110.0
-	github.com/kaellybot/kaelly-amqp v0.0.1-beta6
+	github.com/kaellybot/kaelly-amqp v0.0.2
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/viper v1.14.0
 	google.golang.org/protobuf v1.30.0

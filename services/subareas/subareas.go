@@ -5,16 +5,7 @@ import (
 	"github.com/kaellybot/kaelly-portals/repositories/subareas"
 )
 
-type SubAreaService interface {
-	FindSubAreaByDofusPortalsId(dofusPortalsId string) (entities.SubArea, bool)
-}
-
-type SubAreaServiceImpl struct {
-	subAreas    map[string]entities.SubArea
-	subAreaRepo subareas.SubAreaRepository
-}
-
-func New(subAreaRepo subareas.SubAreaRepository) (*SubAreaServiceImpl, error) {
+func New(subAreaRepo subareas.Repository) (*Impl, error) {
 	subAreaEntities, err := subAreaRepo.GetSubAreas()
 	if err != nil {
 		return nil, err
@@ -22,16 +13,16 @@ func New(subAreaRepo subareas.SubAreaRepository) (*SubAreaServiceImpl, error) {
 
 	subAreas := make(map[string]entities.SubArea)
 	for _, subArea := range subAreaEntities {
-		subAreas[subArea.DofusPortalsId] = subArea
+		subAreas[subArea.DofusPortalsID] = subArea
 	}
 
-	return &SubAreaServiceImpl{
+	return &Impl{
 		subAreas:    subAreas,
 		subAreaRepo: subAreaRepo,
 	}, nil
 }
 
-func (service *SubAreaServiceImpl) FindSubAreaByDofusPortalsId(dofusPortalsId string) (entities.SubArea, bool) {
-	subArea, found := service.subAreas[dofusPortalsId]
+func (service *Impl) FindSubAreaByDofusPortalsID(dofusPortalsID string) (entities.SubArea, bool) {
+	subArea, found := service.subAreas[dofusPortalsID]
 	return subArea, found
 }

@@ -19,29 +19,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-type ApplicationInterface interface {
-	Run() error
-	Shutdown()
-}
-
-type Application struct {
-	serverService    servers.ServerService
-	dimensionService dimensions.DimensionService
-	areaService      areas.AreaService
-	subAreaService   subareas.SubAreaService
-	transportService transports.TransportService
-	portals          portals.PortalsService
-	broker           amqp.MessageBrokerInterface
-}
-
-func New() (*Application, error) {
+func New() (*Impl, error) {
 	// misc
 	db, err := databases.New()
 	if err != nil {
 		return nil, err
 	}
 
-	broker, err := amqp.New(constants.RabbitMQClientId, viper.GetString(constants.RabbitMqAddress), []amqp.Binding{portals.GetBinding()})
+	broker, err := amqp.New(constants.RabbitMQClientID, viper.GetString(constants.RabbitMQAddress), []amqp.Binding{portals.GetBinding()})
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +69,7 @@ func New() (*Application, error) {
 		return nil, err
 	}
 
-	return &Application{
+	return &Impl{
 		serverService:    serverService,
 		dimensionService: dimensionService,
 		areaService:      areaService,
@@ -95,11 +80,11 @@ func New() (*Application, error) {
 	}, nil
 }
 
-func (app *Application) Run() error {
+func (app *Impl) Run() error {
 	return app.portals.Consume()
 }
 
-func (app *Application) Shutdown() {
+func (app *Impl) Shutdown() {
 	app.broker.Shutdown()
 	log.Info().Msgf("Application is no longer running")
 }

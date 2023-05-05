@@ -5,16 +5,7 @@ import (
 	"github.com/kaellybot/kaelly-portals/repositories/transports"
 )
 
-type TransportService interface {
-	FindTransportTypeByDofusPortalsId(dofusPortalsId string) (entities.TransportType, bool)
-}
-
-type TransportServiceImpl struct {
-	transportTypes    map[string]entities.TransportType
-	transportTypeRepo transports.TransportTypeRepository
-}
-
-func New(transportTypeRepo transports.TransportTypeRepository) (*TransportServiceImpl, error) {
+func New(transportTypeRepo transports.Repository) (*Impl, error) {
 	transportTypeEntities, err := transportTypeRepo.GetTransportTypes()
 	if err != nil {
 		return nil, err
@@ -22,16 +13,16 @@ func New(transportTypeRepo transports.TransportTypeRepository) (*TransportServic
 
 	transportTypes := make(map[string]entities.TransportType)
 	for _, transportType := range transportTypeEntities {
-		transportTypes[transportType.DofusPortalsId] = transportType
+		transportTypes[transportType.DofusPortalsID] = transportType
 	}
 
-	return &TransportServiceImpl{
+	return &Impl{
 		transportTypes:    transportTypes,
 		transportTypeRepo: transportTypeRepo,
 	}, nil
 }
 
-func (service *TransportServiceImpl) FindTransportTypeByDofusPortalsId(dofusPortalsId string) (entities.TransportType, bool) {
-	transportType, found := service.transportTypes[dofusPortalsId]
+func (service *Impl) FindTransportTypeByDofusPortalsID(dofusPortalsID string) (entities.TransportType, bool) {
+	transportType, found := service.transportTypes[dofusPortalsID]
 	return transportType, found
 }

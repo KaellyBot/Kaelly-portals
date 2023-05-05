@@ -4,12 +4,12 @@ import "github.com/rs/zerolog"
 
 const (
 	LogFileName        = "fileName"
-	LogCorrelationId   = "correlationId"
-	LogServerId        = "serverId"
-	LogDimensionId     = "dimensionId"
-	LogAreaId          = "areaId"
-	LogSubAreaId       = "subAreaId"
-	LogTransportTypeId = "transportTypeId"
+	LogCorrelationID   = "correlationID"
+	LogServerID        = "serverID"
+	LogDimensionID     = "dimensionID"
+	LogAreaID          = "areaID"
+	LogSubAreaID       = "subAreaID"
+	LogTransportTypeID = "transportTypeID"
 
 	LogLevelFallback = zerolog.InfoLevel
 )

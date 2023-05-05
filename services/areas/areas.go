@@ -5,16 +5,7 @@ import (
 	"github.com/kaellybot/kaelly-portals/repositories/areas"
 )
 
-type AreaService interface {
-	FindAreaByDofusPortalsId(dofusPortalsId string) (entities.Area, bool)
-}
-
-type AreaServiceImpl struct {
-	areas    map[string]entities.Area
-	areaRepo areas.AreaRepository
-}
-
-func New(areaRepo areas.AreaRepository) (*AreaServiceImpl, error) {
+func New(areaRepo areas.Repository) (*Impl, error) {
 	areaEntities, err := areaRepo.GetAreas()
 	if err != nil {
 		return nil, err
@@ -22,16 +13,16 @@ func New(areaRepo areas.AreaRepository) (*AreaServiceImpl, error) {
 
 	areas := make(map[string]entities.Area)
 	for _, area := range areaEntities {
-		areas[area.DofusPortalsId] = area
+		areas[area.DofusPortalsID] = area
 	}
 
-	return &AreaServiceImpl{
+	return &Impl{
 		areas:    areas,
 		areaRepo: areaRepo,
 	}, nil
 }
 
-func (service *AreaServiceImpl) FindAreaByDofusPortalsId(dofusPortalsId string) (entities.Area, bool) {
-	area, found := service.areas[dofusPortalsId]
+func (service *Impl) FindAreaByDofusPortalsID(dofusPortalsID string) (entities.Area, bool) {
+	area, found := service.areas[dofusPortalsID]
 	return area, found
 }

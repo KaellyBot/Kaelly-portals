@@ -5,48 +5,59 @@ import "github.com/rs/zerolog"
 const (
 	ConfigFileName = ".env"
 
-	// Dofus Portals Token
+	// MySQL URL with the following format: HOST:PORT.
+	MySQLURL = "MYSQL_URL"
+
+	// MySQL user.
+	MySQLUser = "MYSQL_USER"
+
+	// MySQL password.
+	MySQLPassword = "MYSQL_PASSWORD"
+
+	// MySQL database name.
+	MySQLDatabase = "MYSQL_DATABASE"
+
+	// RabbitMQ address.
+	RabbitMQAddress = "RABBITMQ_ADDRESS"
+
+	// Dofus Portals Token.
 	DofusPortalsToken = "DOFUS_PORTALS_TOKEN"
 
-	// MySQL URL with the following format: HOST:PORT
-	MySqlUrl = "MYSQL_URL"
+	// Timeout to retrieve portals in seconds.
+	DofusPortalsTimeout = "HTTP_TIMEOUT"
 
-	// MySQL user
-	MySqlUser = "MYSQL_USER"
-
-	// MySQL password
-	MySqlPassword = "MYSQL_PASSWORD"
-
-	// MySQL database name
-	MySqlDatabase = "MYSQL_DATABASE"
-
-	// RabbitMQ address
-	RabbitMqAddress = "RABBITMQ_ADDRESS"
-
-	// Timeout to retrieve portals in seconds
-	HttpTimeout = "HTTP_TIMEOUT"
-
-	// Metric port
+	// Metric port.
 	MetricPort = "METRIC_PORT"
 
-	// Zerolog values from [trace, debug, info, warn, error, fatal, panic]
+	// Zerolog values from [trace, debug, info, warn, error, fatal, panic].
 	LogLevel = "LOG_LEVEL"
 
 	// Boolean; used to register commands at development guild level or globally.
 	Production = "PRODUCTION"
+
+	defaultMySQLURL            = "localhost:3306"
+	defaultMySQLUser           = ""
+	defaultMySQLPassword       = ""
+	defaultMySQLDatabase       = "kaellybot"
+	defaultRabbitMQAddress     = "amqp://localhost:5672"
+	defaultDofusPortalsToken   = ""
+	defaultDofusPortalsTimeout = 60
+	defaultMetricPort          = 2112
+	defaultLogLevel            = zerolog.InfoLevel
+	defaultProduction          = false
 )
 
-var (
-	DefaultConfigValues = map[string]interface{}{
-		DofusPortalsToken: "",
-		MySqlUrl:          "localhost:3306",
-		MySqlUser:         "",
-		MySqlPassword:     "",
-		MySqlDatabase:     "kaellybot",
-		RabbitMqAddress:   "amqp://localhost:5672",
-		HttpTimeout:       10,
-		MetricPort:        2112,
-		LogLevel:          zerolog.InfoLevel.String(),
-		Production:        false,
+func GetDefaultConfigValues() map[string]any {
+	return map[string]any{
+		MySQLURL:            defaultMySQLURL,
+		MySQLUser:           defaultMySQLUser,
+		MySQLPassword:       defaultMySQLPassword,
+		MySQLDatabase:       defaultMySQLDatabase,
+		RabbitMQAddress:     defaultRabbitMQAddress,
+		DofusPortalsToken:   defaultDofusPortalsToken,
+		DofusPortalsTimeout: defaultDofusPortalsTimeout,
+		MetricPort:          defaultMetricPort,
+		LogLevel:            defaultLogLevel.String(),
+		Production:          defaultProduction,
 	}
-)
+}
