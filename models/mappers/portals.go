@@ -18,9 +18,9 @@ import (
 
 func MapPortal(portal dofusportals.Portal, serverService servers.Service,
 	dimensionService dimensions.Service, areaService areas.Service,
-	Service subareas.Service, transportService transports.Service,
+	subareaService subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition {
-	var remainingUses int32 = 0
+	var remainingUses int32
 	if portal.RemainingUses != nil {
 		remainingUses = int32(*portal.RemainingUses)
 	}
@@ -28,18 +28,18 @@ func MapPortal(portal dofusportals.Portal, serverService servers.Service,
 	return &amqp.PortalPositionAnswer_PortalPosition{
 		ServerId:      getInternalServerID(portal.Server, serverService),
 		DimensionId:   getInternalDimensionID(portal.Dimension, dimensionService),
-		Position:      mapPosition(portal.Position, areaService, Service, transportService),
+		Position:      mapPosition(portal.Position, areaService, subareaService, transportService),
 		RemainingUses: remainingUses,
 		CreatedBy:     mapUser(portal.CreatedBy),
 		CreatedAt:     mapTimestamp(portal.CreatedAt),
 		UpdatedBy:     mapUser(portal.UpdatedBy),
 		UpdatedAt:     mapTimestamp(portal.UpdatedAt),
-		Source:        mapSource(models.SourceDofusPortals),
+		Source:        mapSource(models.GetDofusPortalsSource()),
 	}
 }
 
 func mapPosition(position *dofusportals.Position, areaService areas.Service,
-	Service subareas.Service, transportService transports.Service,
+	subareaService subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition_Position {
 	if position == nil {
 		return nil
@@ -54,13 +54,13 @@ func mapPosition(position *dofusportals.Position, areaService areas.Service,
 		X:                    int32(position.X),
 		Y:                    int32(position.Y),
 		IsInCanopy:           isInCanopy,
-		Transport:            mapTransport(position.Transport, areaService, Service, transportService),
-		ConditionalTransport: mapTransport(position.ConditionalTransport, areaService, Service, transportService),
+		Transport:            mapTransport(position.Transport, areaService, subareaService, transportService),
+		ConditionalTransport: mapTransport(position.ConditionalTransport, areaService, subareaService, transportService),
 	}
 }
 
 func mapTransport(transport *dofusportals.Transport, areaService areas.Service,
-	Service subareas.Service, transportService transports.Service,
+	subareaService subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition_Position_Transport {
 	if transport == nil {
 		return nil
@@ -68,7 +68,7 @@ func mapTransport(transport *dofusportals.Transport, areaService areas.Service,
 
 	return &amqp.PortalPositionAnswer_PortalPosition_Position_Transport{
 		AreaId:    getInternalAreaID(transport.Area, areaService),
-		SubAreaId: getInternalSubAreaID(transport.SubArea, Service),
+		SubAreaId: getInternalSubAreaID(transport.SubArea, subareaService),
 		TypeId:    getInternalTransportTypeID(string(transport.Type), transportService),
 		X:         int32(transport.X),
 		Y:         int32(transport.Y),
@@ -95,7 +95,7 @@ func mapSource(source models.Source) *amqp.PortalPositionAnswer_PortalPosition_S
 	return &amqp.PortalPositionAnswer_PortalPosition_Source{
 		Name: source.Name,
 		Icon: source.Icon,
-		Url:  source.Url,
+		Url:  source.URL,
 	}
 }
 
@@ -132,8 +132,8 @@ func getInternalAreaID(dofusPortalsID string, areaService areas.Service) string 
 	return dofusPortalsID
 }
 
-func getInternalSubAreaID(dofusPortalsID string, Service subareas.Service) string {
-	subArea, found := Service.FindSubAreaByDofusPortalsID(dofusPortalsID)
+func getInternalSubAreaID(dofusPortalsID string, subareaService subareas.Service) string {
+	subArea, found := subareaService.FindSubAreaByDofusPortalsID(dofusPortalsID)
 	if found {
 		return subArea.ID
 	}

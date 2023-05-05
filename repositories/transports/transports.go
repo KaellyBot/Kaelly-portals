@@ -10,7 +10,7 @@ func New(db databases.MySQLConnection) *Impl {
 }
 
 func (repo *Impl) GetTransportTypes() ([]entities.TransportType, error) {
-	var TransportTypes []entities.TransportType
-	response := repo.db.GetDB().Model(&entities.TransportType{}).Find(&TransportTypes)
-	return TransportTypes, response.Error
+	var transportTypes []entities.TransportType
+	response := repo.db.GetDB().Model(&entities.TransportType{}).Find(&transportTypes)
+	return transportTypes, response.Error
 }

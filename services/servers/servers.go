@@ -14,7 +14,6 @@ func New(serverRepo servers.Repository) (*Impl, error) {
 	servers := make(map[string]entities.Server)
 	dofusPortalsServers := make(map[string]entities.Server)
 	for _, server := range serverEntities {
-
 		servers[server.ID] = server
 		dofusPortalsServers[server.DofusPortalsID] = server
 	}

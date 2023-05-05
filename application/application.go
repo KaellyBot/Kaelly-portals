@@ -26,7 +26,8 @@ func New() (*Impl, error) {
 		return nil, err
 	}
 
-	broker, err := amqp.New(constants.RabbitMQClientID, viper.GetString(constants.RabbitMQAddress), []amqp.Binding{portals.GetBinding()})
+	broker, err := amqp.New(constants.RabbitMQClientID, viper.GetString(constants.RabbitMQAddress),
+		[]amqp.Binding{portals.GetBinding()})
 	if err != nil {
 		return nil, err
 	}

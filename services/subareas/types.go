@@ -6,7 +6,7 @@ import (
 )
 
 type Service interface {
-	FindSubAreaByDofusPortalsID(dofusPortalsId string) (entities.SubArea, bool)
+	FindSubAreaByDofusPortalsID(dofusPortalsID string) (entities.SubArea, bool)
 }
 
 type Impl struct {

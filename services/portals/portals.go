@@ -24,7 +24,8 @@ import (
 func New(broker amqp.MessageBroker, serverService servers.Service,
 	dimensionService dimensions.Service, areaService areas.Service,
 	subAreaService subareas.Service, transportService transports.Service) (*Impl, error) {
-	apiKeyProvIDer, err := securityprovider.NewSecurityProviderApiKey(httpHeader, httpApiToken, viper.GetString(constants.DofusPortalsToken))
+	apiKeyProvIDer, err := securityprovider.
+		NewSecurityProviderApiKey(httpHeader, httpAPIToken, viper.GetString(constants.DofusPortalsToken))
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,10 @@ func (service *Impl) Consume() error {
 
 func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage, correlationID string) {
 	if !isValidPortalRequest(message) {
-		log.Error().Err(errInvalidMessage).Str(constants.LogCorrelationID, correlationID).Msgf("Cannot treat request, returning failed message")
+		log.Error().
+			Err(errInvalidMessage).
+			Str(constants.LogCorrelationID, correlationID).
+			Msgf("Cannot treat request, returning failed message")
 		service.publishPortalAnswerFailed(correlationID, message.Language)
 		return
 	}
@@ -96,7 +100,6 @@ func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage,
 
 		portals = append(portals, mappers.MapPortal(dofusPortal, service.serverService, service.dimensionService,
 			service.areaService, service.subAreaService, service.transportService))
-
 	} else {
 		dofusPortals, err := service.getPortals(ctx, dofusPortalsServerID)
 		if err != nil {
@@ -160,7 +163,7 @@ func (service *Impl) getPortals(ctx context.Context, server string) ([]dofusport
 	}
 
 	var portals []dofusportals.Portal
-	if err := json.Unmarshal(body, &portals); err != nil {
+	if err = json.Unmarshal(body, &portals); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +189,7 @@ func (service *Impl) getPortal(ctx context.Context, server, dimension string) (d
 	}
 
 	var portal dofusportals.Portal
-	if err := json.Unmarshal(body, &portal); err != nil {
+	if err = json.Unmarshal(body, &portal); err != nil {
 		return dofusportals.Portal{}, err
 	}
 

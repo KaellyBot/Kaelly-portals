@@ -10,7 +10,7 @@ func New(db databases.MySQLConnection) *Impl {
 }
 
 func (repo *Impl) GetSubAreas() ([]entities.SubArea, error) {
-	var SubAreas []entities.SubArea
-	response := repo.db.GetDB().Model(&entities.SubArea{}).Find(&SubAreas)
-	return SubAreas, response.Error
+	var subAreas []entities.SubArea
+	response := repo.db.GetDB().Model(&entities.SubArea{}).Find(&subAreas)
+	return subAreas, response.Error
 }
