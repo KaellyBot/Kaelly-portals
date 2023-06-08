@@ -4,7 +4,6 @@ import (
 	"time"
 
 	amqp "github.com/kaellybot/kaelly-amqp"
-	"github.com/kaellybot/kaelly-portals/models"
 	"github.com/kaellybot/kaelly-portals/models/constants"
 	"github.com/kaellybot/kaelly-portals/payloads/dofusportals"
 	"github.com/kaellybot/kaelly-portals/services/areas"
@@ -34,7 +33,7 @@ func MapPortal(portal dofusportals.Portal, serverService servers.Service,
 		CreatedAt:     mapTimestamp(portal.CreatedAt),
 		UpdatedBy:     mapUser(portal.UpdatedBy),
 		UpdatedAt:     mapTimestamp(portal.UpdatedAt),
-		Source:        mapSource(models.GetDofusPortalsSource()),
+		Source:        mapSource(constants.GetDofusPortalsSource()),
 	}
 }
 
@@ -91,7 +90,7 @@ func mapTimestamp(timestamp *time.Time) *timestamppb.Timestamp {
 	return timestamppb.New(*timestamp)
 }
 
-func mapSource(source models.Source) *amqp.PortalPositionAnswer_PortalPosition_Source {
+func mapSource(source constants.Source) *amqp.PortalPositionAnswer_PortalPosition_Source {
 	return &amqp.PortalPositionAnswer_PortalPosition_Source{
 		Name: source.Name,
 		Icon: source.Icon,

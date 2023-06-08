@@ -1,4 +1,4 @@
-package models
+package constants
 
 type Source struct {
 	Name string
