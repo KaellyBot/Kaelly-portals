@@ -90,8 +90,8 @@ func mapTimestamp(timestamp *time.Time) *timestamppb.Timestamp {
 	return timestamppb.New(*timestamp)
 }
 
-func mapSource(source constants.Source) *amqp.PortalPositionAnswer_PortalPosition_Source {
-	return &amqp.PortalPositionAnswer_PortalPosition_Source{
+func mapSource(source constants.Source) *amqp.Source {
+	return &amqp.Source{
 		Name: source.Name,
 		Icon: source.Icon,
 		Url:  source.URL,
