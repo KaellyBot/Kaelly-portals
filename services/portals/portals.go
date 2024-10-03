@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
 	amqp "github.com/kaellybot/kaelly-amqp"
 	"github.com/kaellybot/kaelly-portals/models/constants"
 	"github.com/kaellybot/kaelly-portals/models/mappers"
@@ -17,6 +16,7 @@ import (
 	"github.com/kaellybot/kaelly-portals/services/servers"
 	"github.com/kaellybot/kaelly-portals/services/subareas"
 	"github.com/kaellybot/kaelly-portals/services/transports"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )

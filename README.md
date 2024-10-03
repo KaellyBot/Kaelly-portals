@@ -12,7 +12,7 @@ Application to retrieve dimension portals from different sources, written in Go
 
 ```Bash
 # CLI Installation
-go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 
 # Examples
 oapi-codegen -package payloads -generate types,client,spec openapi.yaml > openapi.gen.go

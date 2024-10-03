@@ -24,7 +24,7 @@ func New() (*MySQLConnectionImpl, error) {
 	dbPassword := viper.GetString(constants.MySQLPassword)
 	dbURL := viper.GetString(constants.MySQLURL)
 	dbName := viper.GetString(constants.MySQLDatabase)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true&loc=Local", dbUser, dbPassword, dbURL, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=UTC", dbUser, dbPassword, dbURL, dbName)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
