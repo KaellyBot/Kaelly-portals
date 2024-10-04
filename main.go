@@ -38,7 +38,7 @@ func initConfig() {
 
 func initLog() {
 	zerolog.SetGlobalLevel(constants.LogLevelFallback)
-	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+	zerolog.CallerMarshalFunc = func(_ uintptr, file string, line int) string {
 		short := file
 		for i := len(file) - 1; i > 0; i-- {
 			if file[i] == '/' {
