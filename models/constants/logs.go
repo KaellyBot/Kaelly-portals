@@ -8,6 +8,7 @@ const (
 	LogServerID        = "serverID"
 	LogDimensionID     = "dimensionID"
 	LogAreaID          = "areaID"
+	LogReplyTo         = "replyTo"
 	LogSubAreaID       = "subAreaID"
 	LogTransportTypeID = "transportTypeID"
 

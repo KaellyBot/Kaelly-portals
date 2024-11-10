@@ -16,6 +16,7 @@ import (
 	"github.com/kaellybot/kaelly-portals/services/servers"
 	"github.com/kaellybot/kaelly-portals/services/subareas"
 	"github.com/kaellybot/kaelly-portals/services/transports"
+	"github.com/kaellybot/kaelly-portals/utils/databases/replies"
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -63,13 +64,14 @@ func (service *Impl) Consume() error {
 	return service.broker.Consume(requestQueueName, service.consume)
 }
 
-func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage, correlationID string) {
+func (service *Impl) consume(ctx amqp.Context, message *amqp.RabbitMQMessage) {
 	if !isValidPortalRequest(message) {
 		log.Error().
 			Err(errInvalidMessage).
-			Str(constants.LogCorrelationID, correlationID).
+			Str(constants.LogCorrelationID, ctx.CorrelationID).
 			Msgf("Cannot treat request, returning failed message")
-		service.publishPortalAnswerFailed(correlationID, message.Language)
+		replies.FailedAnswer(ctx, service.broker, amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
+			message.Language)
 		return
 	}
 
@@ -77,7 +79,7 @@ func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage,
 	dimensionID := message.GetPortalPositionRequest().GetDimensionId()
 
 	log.Info().
-		Str(constants.LogCorrelationID, correlationID).
+		Str(constants.LogCorrelationID, ctx.CorrelationID).
 		Str(constants.LogServerID, serverID).
 		Str(constants.LogDimensionID, dimensionID).
 		Msgf("Treating request")
@@ -90,11 +92,12 @@ func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage,
 		dofusPortal, err := service.getPortal(ctx, dofusPortalsServerID, dofusPortalsDimensionID)
 		if err != nil {
 			log.Error().Err(err).
-				Str(constants.LogCorrelationID, correlationID).
+				Str(constants.LogCorrelationID, ctx.CorrelationID).
 				Str(constants.LogServerID, serverID).
 				Str(constants.LogDimensionID, dimensionID).
 				Msgf("Returning failed message")
-			service.publishPortalAnswerFailed(correlationID, message.Language)
+			replies.FailedAnswer(ctx, service.broker, amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
+				message.Language)
 			return
 		}
 
@@ -104,10 +107,11 @@ func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage,
 		dofusPortals, err := service.getPortals(ctx, dofusPortalsServerID)
 		if err != nil {
 			log.Error().Err(err).
-				Str(constants.LogCorrelationID, correlationID).
+				Str(constants.LogCorrelationID, ctx.CorrelationID).
 				Str(constants.LogServerID, serverID).
 				Msgf("Returning failed message")
-			service.publishPortalAnswerFailed(correlationID, message.Language)
+			replies.FailedAnswer(ctx, service.broker, amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
+				message.Language)
 			return
 		}
 
@@ -117,7 +121,8 @@ func (service *Impl) consume(ctx context.Context, message *amqp.RabbitMQMessage,
 		}
 	}
 
-	service.publishPortalAnswerSuccess(portals, correlationID, message.Language)
+	response := mappers.MapPortalAnswer(portals, message.Language)
+	replies.SucceededAnswer(ctx, service.broker, response)
 }
 
 func isValidPortalRequest(message *amqp.RabbitMQMessage) bool {
@@ -194,34 +199,4 @@ func (service *Impl) getPortal(ctx context.Context, server, dimension string) (d
 	}
 
 	return portal, nil
-}
-
-func (service *Impl) publishPortalAnswerFailed(correlationID string, language amqp.Language) {
-	message := amqp.RabbitMQMessage{
-		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
-		Status:   amqp.RabbitMQMessage_FAILED,
-		Language: language,
-	}
-
-	err := service.broker.Publish(&message, amqp.ExchangeAnswer, answersRoutingkey, correlationID)
-	if err != nil {
-		log.Error().Err(err).Str(constants.LogCorrelationID, correlationID).Msgf("Cannot publish via broker, request ignored")
-	}
-}
-
-func (service *Impl) publishPortalAnswerSuccess(portals []*amqp.PortalPositionAnswer_PortalPosition,
-	correlationID string, language amqp.Language) {
-	message := amqp.RabbitMQMessage{
-		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
-		Status:   amqp.RabbitMQMessage_SUCCESS,
-		Language: language,
-		PortalPositionAnswer: &amqp.PortalPositionAnswer{
-			Positions: portals,
-		},
-	}
-
-	err := service.broker.Publish(&message, amqp.ExchangeAnswer, answersRoutingkey, correlationID)
-	if err != nil {
-		log.Error().Err(err).Str(constants.LogCorrelationID, correlationID).Msgf("Cannot publish via broker, request ignored")
-	}
 }

@@ -15,6 +15,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func MapPortalAnswer(portals []*amqp.PortalPositionAnswer_PortalPosition,
+	language amqp.Language) *amqp.RabbitMQMessage {
+	return &amqp.RabbitMQMessage{
+		Type:     amqp.RabbitMQMessage_PORTAL_POSITION_ANSWER,
+		Status:   amqp.RabbitMQMessage_SUCCESS,
+		Language: language,
+		PortalPositionAnswer: &amqp.PortalPositionAnswer{
+			Positions: portals,
+		},
+	}
+}
+
 func MapPortal(portal dofusportals.Portal, serverService servers.Service,
 	dimensionService dimensions.Service, areaService areas.Service,
 	subareaService subareas.Service, transportService transports.Service,
