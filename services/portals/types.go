@@ -29,7 +29,7 @@ var (
 )
 
 type Service interface {
-	Consume() error
+	Consume()
 }
 
 type Impl struct {
