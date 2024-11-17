@@ -6,7 +6,7 @@ go 1.22
 
 require (
 	github.com/getkin/kin-openapi v0.127.0
-	github.com/kaellybot/kaelly-amqp v0.0.9-beta2
+	github.com/kaellybot/kaelly-amqp v0.0.9-beta5
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/prometheus/client_golang v1.20.4

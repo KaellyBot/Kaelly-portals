@@ -31,9 +31,9 @@ func MapPortal(portal dofusportals.Portal, serverService servers.Service,
 	dimensionService dimensions.Service, areaService areas.Service,
 	subareaService subareas.Service, transportService transports.Service,
 ) *amqp.PortalPositionAnswer_PortalPosition {
-	var remainingUses int32
+	var remainingUses int64
 	if portal.RemainingUses != nil {
-		remainingUses = int32(*portal.RemainingUses)
+		remainingUses = int64(*portal.RemainingUses)
 	}
 
 	return &amqp.PortalPositionAnswer_PortalPosition{
@@ -62,8 +62,8 @@ func mapPosition(position *dofusportals.Position, areaService areas.Service,
 	}
 
 	return &amqp.PortalPositionAnswer_PortalPosition_Position{
-		X:                    int32(position.X),
-		Y:                    int32(position.Y),
+		X:                    int64(position.X),
+		Y:                    int64(position.Y),
 		IsInCanopy:           isInCanopy,
 		Transport:            mapTransport(position.Transport, areaService, subareaService, transportService),
 		ConditionalTransport: mapTransport(position.ConditionalTransport, areaService, subareaService, transportService),
@@ -81,8 +81,8 @@ func mapTransport(transport *dofusportals.Transport, areaService areas.Service,
 		AreaId:    getInternalAreaID(transport.Area, areaService),
 		SubAreaId: getInternalSubAreaID(transport.SubArea, subareaService),
 		TypeId:    getInternalTransportTypeID(string(transport.Type), transportService),
-		X:         int32(transport.X),
-		Y:         int32(transport.Y),
+		X:         int64(transport.X),
+		Y:         int64(transport.Y),
 	}
 }
 

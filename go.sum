@@ -45,8 +45,8 @@ github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
 github.com/juju/gnuflag v0.0.0-20171113085948-2ce1bb71843d/go.mod h1:2PavIy+JPciBPrBUjwbNvtwB6RQlve+hkpll6QSNmOE=
-github.com/kaellybot/kaelly-amqp v0.0.9-beta2 h1:7XY6QJdJHDt/slNaSbv7SRB8RTSnM2J+00LuyJnwE1o=
-github.com/kaellybot/kaelly-amqp v0.0.9-beta2/go.mod h1:dyt607MGIsba2es5G0WNAXPSgAS+Az19bF25MubMjAg=
+github.com/kaellybot/kaelly-amqp v0.0.9-beta5 h1:2SY4EpWi0Q4svkcJdkyyPAv77XmLLijH4WP7K4kEfzc=
+github.com/kaellybot/kaelly-amqp v0.0.9-beta5/go.mod h1:dyt607MGIsba2es5G0WNAXPSgAS+Az19bF25MubMjAg=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
 github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
