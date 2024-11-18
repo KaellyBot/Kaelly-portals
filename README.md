@@ -1,7 +1,6 @@
 # kaelly-portals 
 
-[![Golangci-lint](https://github.com/kaellybot/kaelly-portals/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/kaellybot/kaelly-portals/actions/workflows/golangci-lint.yml)
-[![Test](https://github.com/kaellybot/kaelly-portals/actions/workflows/test.yml/badge.svg)](https://github.com/kaellybot/kaelly-portals/actions/workflows/test.yml)
+[![CI](https://github.com/kaellybot/kaelly-portals/actions/workflows/ci.yml/badge.svg)](https://github.com/kaellybot/kaelly-portals/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/kaellybot/kaelly-portals/branch/master/graph/badge.svg)](https://codecov.io/gh/kaellybot/kaelly-portals) 
 
 
