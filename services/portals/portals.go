@@ -16,7 +16,7 @@ import (
 	"github.com/kaellybot/kaelly-portals/services/servers"
 	"github.com/kaellybot/kaelly-portals/services/subareas"
 	"github.com/kaellybot/kaelly-portals/services/transports"
-	"github.com/kaellybot/kaelly-portals/utils/databases/replies"
+	"github.com/kaellybot/kaelly-portals/utils/replies"
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"

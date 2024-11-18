@@ -12,37 +12,68 @@ import (
 
 type MySQLConnection interface {
 	GetDB() *gorm.DB
+	IsConnected() bool
+	Run() error
 	Shutdown()
 }
 
-type MySQLConnectionImpl struct {
-	db *gorm.DB
+type mySQLConnection struct {
+	dsn string
+	db  *gorm.DB
 }
 
-func New() (*MySQLConnectionImpl, error) {
+func New() MySQLConnection {
 	dbUser := viper.GetString(constants.MySQLUser)
 	dbPassword := viper.GetString(constants.MySQLPassword)
 	dbURL := viper.GetString(constants.MySQLURL)
 	dbName := viper.GetString(constants.MySQLDatabase)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=UTC", dbUser, dbPassword, dbURL, dbName)
+	return &mySQLConnection{
+		dsn: fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=UTC",
+			dbUser, dbPassword, dbURL, dbName),
+	}
+}
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return nil, err
+func (c *mySQLConnection) GetDB() *gorm.DB {
+	return c.db
+}
+
+func (c *mySQLConnection) IsConnected() bool {
+	if c.db == nil {
+		return false
 	}
 
-	return &MySQLConnectionImpl{db: db}, nil
+	dbSQL, errSQL := c.db.DB()
+	if errSQL != nil {
+		return false
+	}
+
+	if errPing := dbSQL.Ping(); errPing != nil {
+		return false
+	}
+
+	return true
 }
 
-func (connection *MySQLConnectionImpl) GetDB() *gorm.DB {
-	return connection.db
-}
-
-func (connection *MySQLConnectionImpl) Shutdown() {
-	dbSQL, err := connection.db.DB()
+func (c *mySQLConnection) Run() error {
+	db, err := gorm.Open(mysql.Open(c.dsn), &gorm.Config{})
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to kill connection from database")
+		return err
+	}
+
+	c.db = db
+	log.Info().Msg("Connected to MySQL")
+	return nil
+}
+
+func (c *mySQLConnection) Shutdown() {
+	log.Info().Msg("Shutdown the connection to MySQL")
+	dbSQL, err := c.db.DB()
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to shutdown database connection")
 		return
 	}
-	dbSQL.Close()
+
+	if errClose := dbSQL.Close(); errClose != nil {
+		log.Error().Err(errClose).Msgf("Failed to shutdown database connection")
+	}
 }

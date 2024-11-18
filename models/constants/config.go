@@ -26,6 +26,9 @@ const (
 	// Timeout to retrieve portals in seconds.
 	DofusPortalsTimeout = "HTTP_TIMEOUT"
 
+	// Probe port.
+	ProbePort = "PROBE_PORT"
+
 	// Metric port.
 	MetricPort = "METRIC_PORT"
 
@@ -42,6 +45,7 @@ const (
 	defaultRabbitMQAddress     = "amqp://localhost:5672"
 	defaultDofusPortalsToken   = ""
 	defaultDofusPortalsTimeout = 60
+	defaultProbePort           = 9090
 	defaultMetricPort          = 2112
 	defaultLogLevel            = zerolog.InfoLevel
 	defaultProduction          = false
@@ -56,6 +60,7 @@ func GetDefaultConfigValues() map[string]any {
 		RabbitMQAddress:     defaultRabbitMQAddress,
 		DofusPortalsToken:   defaultDofusPortalsToken,
 		DofusPortalsTimeout: defaultDofusPortalsTimeout,
+		ProbePort:           defaultProbePort,
 		MetricPort:          defaultMetricPort,
 		LogLevel:            defaultLogLevel.String(),
 		Production:          defaultProduction,

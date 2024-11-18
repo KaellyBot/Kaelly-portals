@@ -2,12 +2,9 @@ package application
 
 import (
 	amqp "github.com/kaellybot/kaelly-amqp"
-	"github.com/kaellybot/kaelly-portals/services/areas"
-	"github.com/kaellybot/kaelly-portals/services/dimensions"
 	"github.com/kaellybot/kaelly-portals/services/portals"
-	"github.com/kaellybot/kaelly-portals/services/servers"
-	"github.com/kaellybot/kaelly-portals/services/subareas"
-	"github.com/kaellybot/kaelly-portals/services/transports"
+	"github.com/kaellybot/kaelly-portals/utils/databases"
+	"github.com/kaellybot/kaelly-portals/utils/insights"
 )
 
 type Application interface {
@@ -16,11 +13,9 @@ type Application interface {
 }
 
 type Impl struct {
-	serverService    servers.Service
-	dimensionService dimensions.Service
-	areaService      areas.Service
-	subAreaService   subareas.Service
-	transportService transports.Service
-	portals          portals.Service
-	broker           amqp.MessageBroker
+	portals portals.Service
+	broker  amqp.MessageBroker
+	db      databases.MySQLConnection
+	probes  insights.Probes
+	prom    insights.PrometheusMetrics
 }
