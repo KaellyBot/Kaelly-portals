@@ -1,6 +1,10 @@
 package constants
 
-import "github.com/rs/zerolog"
+import (
+	"time"
+
+	"github.com/rs/zerolog"
+)
 
 const (
 	ConfigFileName = ".env"
@@ -44,7 +48,7 @@ const (
 	defaultMySQLDatabase       = "kaellybot"
 	defaultRabbitMQAddress     = "amqp://localhost:5672"
 	defaultDofusPortalsToken   = ""
-	defaultDofusPortalsTimeout = 60
+	defaultDofusPortalsTimeout = 60 * time.Second
 	defaultProbePort           = 9090
 	defaultMetricPort          = 2112
 	defaultLogLevel            = zerolog.InfoLevel

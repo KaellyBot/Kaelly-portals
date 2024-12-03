@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"time"
 
 	amqp "github.com/kaellybot/kaelly-amqp"
 	"github.com/kaellybot/kaelly-portals/models/constants"
@@ -47,7 +46,7 @@ func New(broker amqp.MessageBroker, serverService servers.Service,
 		transportService:   transportService,
 		broker:             broker,
 		dofusPortalsClient: dofusPortalsClient,
-		httpTimeout:        time.Duration(viper.GetInt(constants.DofusPortalsTimeout)) * time.Second,
+		httpTimeout:        viper.GetDuration(constants.DofusPortalsTimeout),
 	}, nil
 }
 
